@@ -184,8 +184,22 @@ void fifo_schedule(void)
 
 void edf_schedule(void)
 {
-	
-	;
+	pthread_mutex_lock(&mutex);
+	if(occupied){
+		pthread_cond_wait(&a_task_is_done, &mutex);
+	}
+	if(!readyQue.empty()){
+		std::vector<int>::iterator earliest_it = readyQue.begin();
+		for(std::vector<int>::iterator it = readyQue.begin() + 1; it != readyQue.end(); it++){
+			if(tcb[*it].deadline < tcb[*earliest_it].deadline){
+				earliest_it = it;
+			}
+		}
+		int next_thread = *earliest_it;
+		readyQue.erase(earliest_it);
+		pthread_cond_signal(&cond[next_thread]);
+	}
+	pthread_mutex_unlock(&mutex);
 }
 
 
