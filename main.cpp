@@ -102,8 +102,8 @@ int main(int argc, char** argv)
 
 		/////////////////////////////////////////////////////////
 		// Implement different scheduling algorithms
-        // Select different schedule based on mode value
-		 
+		// Select different schedule based on mode value
+		
 		switch(schedule)
 		{
 			case 0:
@@ -167,7 +167,18 @@ int main(int argc, char** argv)
 
 void fifo_schedule(void)
 {
-	;
+	pthread_mutex_lock(&mutex);
+	if(occupied){
+		pthread_cond_wait(&a_task_is_done, &mutex);
+	}
+	if(!readyQue.empty()){
+		// pop next thread number from the front of the ready queue
+		int next_thread = *readyQue.begin();
+		// erase the first entry
+		readyQue.erase(readyQue.begin());
+		pthread_cond_signal(&cond[next_thread]);
+	}
+	pthread_mutex_unlock(&mutex);
 }
 
 
