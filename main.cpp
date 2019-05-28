@@ -176,6 +176,7 @@ void fifo_schedule(void)
 		int next_thread = *readyQue.begin();
 		// erase the first entry
 		readyQue.erase(readyQue.begin());
+		// signal the thread
 		pthread_cond_signal(&cond[next_thread]);
 	}
 	pthread_mutex_unlock(&mutex);
@@ -189,14 +190,20 @@ void edf_schedule(void)
 		pthread_cond_wait(&a_task_is_done, &mutex);
 	}
 	if(!readyQue.empty()){
+		// assume the first thing in the queue is has the earliest deadline
 		std::vector<int>::iterator earliest_it = readyQue.begin();
+		// go through the rest of the ready queue and check if those have 
+		// and earlier deadline than earliest_it
 		for(std::vector<int>::iterator it = readyQue.begin() + 1; it != readyQue.end(); it++){
+			// if earlier than current earliest, update earliest
 			if(tcb[*it].deadline < tcb[*earliest_it].deadline){
 				earliest_it = it;
 			}
 		}
 		int next_thread = *earliest_it;
+		// remove the next thread from the ready queue
 		readyQue.erase(earliest_it);
+		// signal the thread
 		pthread_cond_signal(&cond[next_thread]);
 	}
 	pthread_mutex_unlock(&mutex);
